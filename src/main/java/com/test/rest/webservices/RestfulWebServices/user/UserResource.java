@@ -6,6 +6,10 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,12 +32,19 @@ public class UserResource {
 	
 	
 	@GetMapping("/users/{id}")
-	public User findOne(@PathVariable int id){
+	public Resource<User> findOne(@PathVariable int id){
 		User user = userDaoService.findOne(id);
 		if(user==null) {
 			throw new UserNotFoundException("id-"+ id);
 		}
-		return user;
+		
+		// HATEOAS
+		// link to all - users, server path + "/users"
+		Resource<User> resource = new Resource<User>(user);
+		ControllerLinkBuilder linkTo = linkTo(methodOn(this.getClass()).findAll());
+		resource.add(linkTo.withRel("all-users"));
+		
+		return resource;
 	}
 	
 	@PostMapping("/users")
